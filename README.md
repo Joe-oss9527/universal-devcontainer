@@ -7,7 +7,7 @@
 - VS Code ≥ 1.105，扩展 `ms-vscode-remote.remote-containers` ≥ 0.427
 - Docker Desktop（或兼容 Docker 引擎）已启动，支持 `host.docker.internal`
 - Git 可用（用于脚本拉取仓库）
-- 推荐安装 Dev Containers CLI：`npm i -g @devcontainers/cli`
+- 安装 Dev Containers CLI：`npm i -g @devcontainers/cli`
 - 在受限网络或代理环境下，建议先阅读 `docs/PROXY_SETUP.md`
 
 ## 快速开始
@@ -28,7 +28,7 @@ scripts/open-project.sh https://github.com/owner/repo.git
 # 正常情况下无需 Rebuild；脚本直接调用 devcontainer open
 ```
 
-说明：若未安装 Dev Containers CLI，脚本会回退到写入 `.devcontainer/devcontainer.local.json` 并提示你手动执行 “Reopen in Container”。
+说明：脚本依赖 Dev Containers CLI；如未安装会提示并退出。
 
 进入容器后：
 ```bash
@@ -147,14 +147,12 @@ export EXTRA_ALLOW_DOMAINS="gitlab.mycompany.com registry.internal.net"
 - `.devcontainer/` — 容器定义
   - `Dockerfile` — 基础镜像和系统包
   - `devcontainer.json` — VS Code Dev Container 配置
-  - `devcontainer.local.json` — 回退方案的本地覆盖（仅当未安装 CLI 时由脚本生成；已加入 .gitignore）
   - `bootstrap-claude.sh` — Claude Code 安装和配置（postCreate）
   - `init-firewall.sh` — 防火墙初始化（postStart）
   - `setup-proxy.sh` — 代理配置脚本（可选执行）
 - `scripts/` — 辅助脚本
-  - `open-here.sh` — 使用 Dev Containers CLI 用本配置打开当前目录为工作区（无 CLI 时回退到本地覆盖）
-  - `open-project.sh <路径|Git URL>` — 用本配置打开指定项目（支持 git URL；无 CLI 时回退）
-  - `clear-override.sh` — 清理本地覆盖（仅在回退模式下有意义）
+  - `open-here.sh` — 使用 Dev Containers CLI 用本配置打开当前目录为工作区
+  - `open-project.sh <路径|Git URL>` — 用本配置打开指定项目（支持 git URL）
   - `switch-mode.sh` — 权限模式切换
 - `.claude/` — Claude Code 配置
   - `settings.local.json` — 项目级权限配置
