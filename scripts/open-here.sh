@@ -17,10 +17,20 @@ echo "[universal-devcontainer] Dev Containers CLI 'open' not available. Using fa
 
 PROJ_DEV_DIR="$PROJECT_DIR/.devcontainer"
 mkdir -p "$PROJ_DEV_DIR"
+
+# Compute relative path from project dir to config json for extends:file:<relative>
+REL_CFG=$(python3 - <<'PY' "$CONFIG_JSON" "$PROJECT_DIR"
+import os,sys
+config=sys.argv[1]
+project=sys.argv[2]
+print(os.path.relpath(config, project))
+PY
+)
+
 cat > "$PROJ_DEV_DIR/devcontainer.json" <<EOF
 {
   "name": "$(basename "$PROJECT_DIR")",
-  "extends": "file:$CONFIG_JSON"
+  "extends": "file:$REL_CFG"
 }
 EOF
 echo "[universal-devcontainer] Wrote: $PROJ_DEV_DIR/devcontainer.json (extends current repo config)"
