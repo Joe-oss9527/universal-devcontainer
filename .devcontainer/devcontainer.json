@@ -19,7 +19,8 @@
       "version": "lts"
     },
     "ghcr.io/devcontainers/features/python:1": {
-      "version": "os-provided"
+      "version": "os-provided",
+      "httpProxy": "${localEnv:HOST_PROXY_URL}"
     },
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
