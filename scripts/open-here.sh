@@ -29,7 +29,7 @@ PY
 
 PARENT_DIR=$(dirname "$REL_CFG")
 
-# Try to derive a GitHub extends URI from this repo's origin (optional)
+# Derive a GitHub extends URI from this repo's origin if possible
 GH_EXT=""
 if ORIGIN_URL=$(git -C "$REPO_ROOT" remote get-url origin 2>/dev/null); then
   if OWNER_REPO=$(printf '%s' "$ORIGIN_URL" | sed -E 's#.*github.com[:/ ]([^/]+/[^/.]+)(\.git)?$#\1#'); then
@@ -39,17 +39,21 @@ if ORIGIN_URL=$(git -C "$REPO_ROOT" remote get-url origin 2>/dev/null); then
   fi
 fi
 
+if [ -n "$GH_EXT" ]; then
+  cat > "$PROJ_DEV_DIR/devcontainer.json" <<EOF
 {
-  echo '{'
-  echo '  "name": "'$(basename "$PROJECT_DIR")'",'
-  echo '  "extends": ['
-  echo '    "file:'"$PARENT_DIR"'"'
-  if [ -n "$GH_EXT" ]; then
-    echo '   ,"'"$GH_EXT"'"'
-  fi
-  echo '  ]'
-  echo '}'
-} > "$PROJ_DEV_DIR/devcontainer.json"
+  "name": "$(basename "$PROJECT_DIR")",
+  "extends": "$GH_EXT"
+}
+EOF
+else
+  cat > "$PROJ_DEV_DIR/devcontainer.json" <<EOF
+{
+  "name": "$(basename "$PROJECT_DIR")",
+  "extends": "file:$REL_CFG"
+}
+EOF
+fi
 echo "[universal-devcontainer] Wrote: $PROJ_DEV_DIR/devcontainer.json (extends current repo config)"
 echo "Opening project in VS Code; choose 'Dev Containers: Reopen in Container' if prompted."
 exec code "$PROJECT_DIR"
