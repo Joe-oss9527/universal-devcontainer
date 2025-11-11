@@ -1,25 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "[bootstrap] Installing Claude Code CLI..."
 npm i -g @anthropic-ai/claude-code
 
-# Ensure $HOME/.claude (mounted volume) is writable by current user
 CLAUDE_HOME="$HOME/.claude"
-if ! mkdir -p "$CLAUDE_HOME" 2>/dev/null; then
-  sudo mkdir -p "$CLAUDE_HOME"
-fi
-if ! touch "$CLAUDE_HOME/.permcheck" 2>/dev/null; then
-  sudo chown -R "$(id -u)":"$(id -g)" "$CLAUDE_HOME" || true
-fi
-rm -f "$CLAUDE_HOME/.permcheck" 2>/dev/null || true
-
+echo "[bootstrap] Preparing Claude home at $CLAUDE_HOME..."
 mkdir -p "$CLAUDE_HOME/bin" "$CLAUDE_HOME/commands" "$CLAUDE_HOME/skills"
 CFG="$CLAUDE_HOME/settings.json"
 
 LOGIN_METHOD="${CLAUDE_LOGIN_METHOD:-claudeai}"
 
-# ---- Base policy (BYPASS BY DEFAULT) & marketplace/plugins ----
-read -r -d '' BASE_CFG <<'JSON'
+echo "[bootstrap] Writing base settings..."
+BASE_CFG=$(cat <<'JSON'
 {
   "permissions": {
     "deny": [
@@ -43,6 +36,7 @@ read -r -d '' BASE_CFG <<'JSON'
   }
 }
 JSON
+)
 
 # ---- Login method preset ----
 if [[ -n "${CLAUDE_ORG_UUID:-}" ]]; then
@@ -76,6 +70,7 @@ else
 fi
 
 # ---- Merge settings (existing -> base -> login -> apiHelper -> sandbox) ----
+echo "[bootstrap] Merging settings..."
 if [[ -f "$CFG" ]]; then
   tmp="$(mktemp)"
   jq -s '.[0] * .[1] * .[2] * .[3] * .[4]' \
@@ -95,7 +90,7 @@ else
     > "$tmp" && mv "$tmp" "$CFG"
 fi
 
-# ---- Seeds ----
+echo "[bootstrap] Seeding commands and skills..."
 if [[ ! -f "$HOME/.claude/CLAUDE.md" ]]; then
   cat > "$HOME/.claude/CLAUDE.md" <<'MD'
 # Global notes for Claude Code
@@ -128,6 +123,6 @@ if [[ -n "${CLAUDE_CODE_API_KEY_HELPER_TTL_MS:-}" ]]; then
     "$CFG" > "$tmp" && mv "$tmp" "$CFG"
 fi
 
-echo "✔ Claude Code installed. BYPASS mode is the default."
+echo "[bootstrap] ✔ Claude Code installed. BYPASS mode is the default."
 [[ -n "${CLAUDE_ORG_UUID:-}" ]] && echo "   forceLoginOrgUUID=$CLAUDE_ORG_UUID"
 [[ -n "${ANTHROPIC_API_KEY:-}" ]] && echo "   apiKeyHelper enabled"
