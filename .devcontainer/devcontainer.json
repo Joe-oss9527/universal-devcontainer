@@ -8,6 +8,7 @@
       "NO_PROXY": "${localEnv:NO_PROXY}"
     }
   },
+  "initializeCommand": "bash -lc 'if [ -z \"${localEnv:PROJECT_PATH}\" ]; then echo \"[devcontainer] PROJECT_PATH is not set. Use scripts/open-project.sh or set dev.containers.defaultEnv.PROJECT_PATH\" >&2; exit 1; fi; if [ ! -d \"${localEnv:PROJECT_PATH}\" ]; then echo \"[devcontainer] PROJECT_PATH=\"\"${localEnv:PROJECT_PATH}\"\" is not a directory or not shared with Docker. On macOS, add its parent to Docker Desktop → Settings → Resources → File Sharing.\" >&2; exit 1; fi'",
   "workspaceFolder": "/workspace",
   "remoteUser": "vscode",
 
