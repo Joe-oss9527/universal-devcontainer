@@ -1,11 +1,13 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
-# Accept proxy settings as build arguments
+# Accept timezone and proxy settings as build arguments
+ARG TZ
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-# Set proxy environment variables for build time
+# Set timezone and proxy environment variables for build time
+ENV TZ=${TZ}
 ENV http_proxy=${HTTP_PROXY}
 ENV https_proxy=${HTTPS_PROXY}
 ENV HTTP_PROXY=${HTTP_PROXY}
@@ -26,6 +28,7 @@ RUN apt-get update && \
       jq \
       iptables \
       dnsutils \
+      zsh \
       sudo \
       ca-certificates \
       unzip \
@@ -115,3 +118,9 @@ SH
 
 # Also hook into zsh if present
 RUN bash -lc 'if [ -d /etc/zsh ]; then printf "\n# devcontainer banner (interactive shells)\nif [ -n \"$PS1\" ]; then /usr/local/bin/devcontainer-banner.sh 2>/dev/null || true; fi\n" >> /etc/zsh/zshrc; fi'
+
+# Persist shell history to mounted volume (if available)
+RUN bash -lc 'if [ -d /etc/zsh ]; then \
+  printf "\n# Persist history to /commandhistory (devcontainer volume)\nexport HISTFILE=/commandhistory/.zsh_history\nexport HISTSIZE=100000\nexport SAVEHIST=100000\n" >> /etc/zsh/zshrc; \
+fi' \
+&& bash -lc 'printf "\n# Persist bash history to /commandhistory (devcontainer volume)\nexport HISTFILE=/commandhistory/.bash_history\nexport HISTSIZE=100000\nexport HISTCONTROL=ignoredups:erasedups\nshopt -s histappend\nPROMPT_COMMAND=\"history -a; $PROMPT_COMMAND\"\n" >> /etc/bash.bashrc'
