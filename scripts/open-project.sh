@@ -62,4 +62,12 @@ echo "    export ANTHROPIC_API_KEY=sk-ant-..."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-exec code "$REPO_ROOT"
+# Launch VS Code in a fresh instance so that this shell's environment
+# (including PROJECT_PATH) is inherited by the Dev Containers extension.
+# If a VS Code instance is already running, `code` normally forwards to it
+# and the env would be lost, causing workspaceMount to resolve empty.
+HASH="$(printf "%s" "$PROJECT_DIR" | shasum | awk '{print $1}')"
+UDIR="${HOME}/.cache/universal-dev/vscode-${HASH}"
+mkdir -p "$UDIR"
+echo "Starting VS Code with isolated user-data-dir: $UDIR"
+exec code --user-data-dir "$UDIR" "$REPO_ROOT"
