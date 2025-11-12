@@ -31,3 +31,6 @@ RUN apt-get update && \
       unzip \
       netcat-traditional && \
     rm -rf /var/lib/apt/lists/*
+
+# Ensure workspace directory always exists even if external mount is absent
+RUN mkdir -p /workspace && chown -R vscode:vscode /workspace

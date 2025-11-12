@@ -8,7 +8,6 @@
       "NO_PROXY": "${localEnv:NO_PROXY}"
     }
   },
-  "workspaceMount": "source=${localEnv:PROJECT_PATH},target=/workspace,type=bind",
   "workspaceFolder": "/workspace",
   "remoteUser": "vscode",
 
@@ -21,11 +20,15 @@
     },
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "postCreateCommand": "sudo bash .devcontainer/init-firewall.sh || true && bash .devcontainer/bootstrap-claude.sh",
-  "postStartCommand": "sudo bash .devcontainer/init-firewall.sh || true",
+  "postCreateCommand": "sudo bash /universal/.devcontainer/init-firewall.sh || true && bash /universal/.devcontainer/bootstrap-claude.sh",
+  "postStartCommand": "sudo bash /universal/.devcontainer/init-firewall.sh || true",
   "runArgs": [
     "--cap-add=NET_ADMIN",
     "--add-host=host.docker.internal:host-gateway"
+  ],
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/universal,type=bind",
+    "source=${localEnv:PROJECT_PATH},target=/workspace,type=bind"
   ],
   "remoteEnv": {
     "CLAUDE_LOGIN_METHOD": "${localEnv:CLAUDE_LOGIN_METHOD}",

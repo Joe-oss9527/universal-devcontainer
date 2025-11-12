@@ -82,6 +82,10 @@ code /path/to/universal-devcontainer
 
 说明：为确保兼容性与可预期行为，本配置采用“方案A”，仅在设置了 `PROJECT_PATH` 时进行挂载。
 
+容器内路径约定：
+- 你的外部项目：`/workspace`
+- 本仓库（工具与脚本）：`/universal`
+
 ---
 
 ## 验证安装
@@ -227,7 +231,7 @@ claude /plugins search commit-commands
 ```
 universal-devcontainer/
 ├── .devcontainer/
-│   ├── devcontainer.json       # 主配置（支持 workspaceMount 动态挂载）
+│   ├── devcontainer.json       # 主配置（通过 mounts 绑定 /workspace 与 /universal）
 │   ├── Dockerfile              # 基础镜像
 │   ├── bootstrap-claude.sh     # Claude Code 安装
 │   ├── init-firewall.sh        # 防火墙规则
@@ -332,11 +336,17 @@ chmod o+rx /Users/<username>/developer/<project>
 ## 许可证
 
 MIT License — 详见 `LICENSE` 文件
-### 问题：启动时提示挂载源不存在/为空（workspaceMount）
+### 问题：启动时提示 “Workspace does not exist”
 
-**现象**：容器启动时报错，提示挂载源路径无效。
+**原因**：宿主 VS Code 进程未继承 `PROJECT_PATH`，或 Docker Desktop 未共享该路径，导致 `/workspace` 挂载失败。
 
 **解决**：
-- 确认已设置 `PROJECT_PATH`（通过脚本或手动 `export`）。
-- `echo $PROJECT_PATH` 确认值是否为期望的项目路径。
-- 重新执行：`Dev Containers: Rebuild Container`。
+- 推荐使用脚本启动：`scripts/open-project.sh <你的项目路径>`（脚本会以独立 VS Code 实例启动，继承环境变量）。
+- 或在 VS Code 用户设置中配置：
+  ```jsonc
+  {
+    "dev.containers.defaultEnv": { "PROJECT_PATH": "/path/to/your/project" }
+  }
+  ```
+- macOS: Docker Desktop → Settings → Resources → File Sharing，确保包含 `/Users` 或你的项目父目录。
+- 仍失败时，先验证：`echo $PROJECT_PATH && test -d "$PROJECT_PATH" && echo OK || echo MISSING`。
