@@ -248,6 +248,15 @@ universal-devcontainer/
 
 ## 故障排查
 
+### 快速排错卡片：打开项目（Workspace does not exist）
+- 推荐启动方式：`scripts/open-project.sh /path/to/your/project`（为每个项目开启独立 VS Code 进程，确保继承 `PROJECT_PATH`）。
+- 手动方式：从终端执行 `export PROJECT_PATH=/path/to/your/project && code /path/to/universal-devcontainer`（不要从 Dock 启动 VS Code）。
+- 变更后重建：VS Code → “Dev Containers: Rebuild Without Cache”。
+- macOS 路径共享：Docker Desktop → Settings → Resources → File Sharing 包含项目父目录（如 `/Users`）。
+- 快速自检：
+  - 宿主机：`echo $PROJECT_PATH`、`test -d "$PROJECT_PATH" && echo OK || echo MISSING`
+  - 容器内：查看启动横幅（MOTD）或 `grep ' /workspace ' /proc/mounts` 校验挂载；脚本路径在 `/universal/.devcontainer/...`。
+
 ### 问题：容器无法访问外网
 
 **检查项**：
