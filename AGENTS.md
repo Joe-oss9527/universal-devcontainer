@@ -47,6 +47,8 @@ Container mount conventions:
 
 ## Security & Configuration Tips
 - Default mode favors convenience; do not broaden firewall domains without need.
+- Strict proxy mode: `STRICT_PROXY_ONLY` now defaults to `1`, meaning all outbound traffic must go via the configured proxy. For temporary direct allowlists, set it to `0` on the host and rebuild.
+- Claude credentials/config are shared via a bind mount of the host `~/.claude` directory; `bootstrap-claude.sh` will update `settings.json` (e.g., bypassPermissions, plugins), so only use this setup on trusted machines and repositories.
 - Never commit secrets; `.env*` and `secrets/**` must remain protected.
 - macOS: ensure Docker Desktop File Sharing includes your project’s parent (e.g., `/Users`).
 - If networking is restricted, set `HOST_PROXY_URL`/`ALL_PROXY` and rebuild.

@@ -24,16 +24,16 @@
 
 ## 快速开始 🚀
 
-**核心概念**：这个仓库提供一个可复用的 Dev Container 配置，通过 `workspaceMount` 动态挂载你的项目。
+**核心概念**：这个仓库提供一个可复用的 Dev Container 配置，通过 `workspaceMount` 动态挂载你的项目，并直接复用宿主机的 Claude 登录状态。
 
 ### 方法 1：使用脚本（最简单）⭐
 
 ```bash
-# 设置 Claude 登录方式（首次使用需要）
-export CLAUDE_LOGIN_METHOD=console
-export ANTHROPIC_API_KEY=sk-ant-...
+# 1. 在宿主机安装并登录 Claude Code（仅需一次）
+npm i -g @anthropic-ai/claude-code
+claude login
 
-# 为任意项目打开容器
+# 2. 为任意项目打开容器
 /path/to/universal-devcontainer/scripts/open-project.sh /path/to/your/project
 
 # 或在当前目录
@@ -55,15 +55,17 @@ cd /path/to/your/project
 如果不想用脚本，可以手动操作：
 
 ```bash
-# 1. 设置环境变量
+# 1. 设置项目路径（必需）
 export PROJECT_PATH=/path/to/your/project
-export CLAUDE_LOGIN_METHOD=console
-export ANTHROPIC_API_KEY=sk-ant-...
 
-# 2. 用 VS Code 打开 universal-devcontainer 目录
+# 2. 确保宿主机已安装并登录 Claude Code（一次性操作）
+npm i -g @anthropic-ai/claude-code
+claude login
+
+# 3. 用 VS Code 打开 universal-devcontainer 目录
 code /path/to/universal-devcontainer
 
-# 3. 在 VS Code 中：Dev Containers: Reopen in Container
+# 4. 在 VS Code 中：Dev Containers: Reopen in Container
 ```
 
 ### 方法 3：开发容器本身
@@ -93,6 +95,9 @@ code /path/to/universal-devcontainer
 容器启动后，打开终端验证：
 
 ```bash
+# 验证已自动复用宿主机登录
+claude /doctor
+
 # 检查 Claude Code
 claude /help
 /permissions          # 应显示 bypassPermissions
@@ -111,12 +116,16 @@ nc -vz host.docker.internal 1082  # 测试宿主代理连通性
 
 ## 环境变量配置
 
-### 必需变量（登录 Claude）
+### 登录和组织配置（可选）
+
+默认情况下，只要在宿主机执行过 `claude login`，容器会通过挂载 `~/.claude` 直接复用登录状态，一般 **无需额外环境变量**。
+
+如需覆盖登录方式或使用纯 API Key 模式，可以设置：
 
 | 变量 | 说明 | 示例 |
 |------|------|------|
 | `CLAUDE_LOGIN_METHOD` | 登录方式：`console`/`claudeai`/`apiKey` | `console` |
-| `ANTHROPIC_API_KEY` | API Key（用 `apiKey` 方式时） | `sk-ant-xxx...` |
+| `ANTHROPIC_API_KEY` | API Key（用 `apiKey` 方式时必需） | `sk-ant-xxx...` |
 
 在宿主机设置（容器会自动读取）：
 
@@ -145,10 +154,18 @@ export ANTHROPIC_API_KEY=sk-ant-...
 | `NO_PROXY` | 不走代理的地址 | - | `localhost,127.0.0.1,.local` |
 | `EXTRA_ALLOW_DOMAINS` | 防火墙额外白名单 | - | `"gitlab.com myapi.com"` |
 | `ALLOW_SSH_ANY` | 允许任意 SSH 连接 | `0` | `1` |
-| `STRICT_PROXY_ONLY` | 仅允许代理访问 | `0` | `1` |
+| `STRICT_PROXY_ONLY` | 仅允许代理访问（严格模式） | `1` | `0` |
 | `ENABLE_CLAUDE_SANDBOX` | Claude 沙箱模式 | - | `1` |
 
 **代理配置详细说明**：见 [docs/PROXY_SETUP.md](docs/PROXY_SETUP.md)
+
+## ⚠️ 安全与凭证共享
+
+本配置通过挂载宿主机的 `~/.claude` 目录实现凭证共享：
+
+1. **无需在容器内登录**：容器启动后会直接复用宿主机的 `claude login` 状态。
+2. **会话失效处理**：如提示 Token 过期，请在宿主机终端执行 `claude login`，容器会自动同步，无需重启。
+3. **配置同步**：容器启动时运行 `bootstrap-claude.sh`，会更新 `~/.claude/settings.json`（如开启 bypassPermissions、启用内置插件）。这些更改对宿主机和容器同时生效，请仅在信任当前机器和仓库时使用。
 
 ---
 

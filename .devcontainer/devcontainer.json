@@ -22,8 +22,8 @@
     },
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "postCreateCommand": "sudo bash /universal/.devcontainer/init-firewall.sh || true; sudo chown -R vscode:vscode /home/vscode/.claude /commandhistory || true; bash /universal/.devcontainer/bootstrap-claude.sh",
-  "postStartCommand": "sudo bash /universal/.devcontainer/init-firewall.sh || true",
+  "postCreateCommand": "sudo -E env STRICT_PROXY_ONLY=${STRICT_PROXY_ONLY:-1} bash /universal/.devcontainer/init-firewall.sh || true; sudo chown -R vscode:vscode /commandhistory || true; bash /universal/.devcontainer/bootstrap-claude.sh",
+  "postStartCommand": "sudo -E env STRICT_PROXY_ONLY=${STRICT_PROXY_ONLY:-1} bash /universal/.devcontainer/init-firewall.sh || true",
   "runArgs": [
     "--cap-add=NET_ADMIN",
     "--cap-add=NET_RAW",
@@ -33,7 +33,7 @@
     "source=${localWorkspaceFolder},target=/universal,type=bind",
     "source=${localEnv:PROJECT_PATH},target=/workspace,type=bind",
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=claude-code-config-${devcontainerId},target=/home/vscode/.claude,type=volume"
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind"
   ],
   "remoteEnv": {
     "PROJECT_PATH": "${localEnv:PROJECT_PATH}",
@@ -46,7 +46,8 @@
     "HTTP_PROXY": "${localEnv:HOST_PROXY_URL}",
     "HTTPS_PROXY": "${localEnv:HOST_PROXY_URL}",
     "ALL_PROXY": "${localEnv:ALL_PROXY}",
-    "NO_PROXY": "${localEnv:NO_PROXY}"
+    "NO_PROXY": "${localEnv:NO_PROXY}",
+    "STRICT_PROXY_ONLY": "${localEnv:STRICT_PROXY_ONLY:1}"
   },
   "containerEnv": {
     "PROJECT_PATH": "${localEnv:PROJECT_PATH}",
@@ -59,7 +60,8 @@
     "HTTP_PROXY": "${localEnv:HOST_PROXY_URL}",
     "HTTPS_PROXY": "${localEnv:HOST_PROXY_URL}",
     "ALL_PROXY": "${localEnv:ALL_PROXY}",
-    "NO_PROXY": "${localEnv:NO_PROXY}"
+    "NO_PROXY": "${localEnv:NO_PROXY}",
+    "STRICT_PROXY_ONLY": "${localEnv:STRICT_PROXY_ONLY:1}"
   },
   "customizations": {
     "vscode": {

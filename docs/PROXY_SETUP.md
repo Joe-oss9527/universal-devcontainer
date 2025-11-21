@@ -343,6 +343,8 @@ fi
 在使用的配置文件中添加以下规则（顺序靠前）：
 
 ```
+DOMAIN-SUFFIX,claude.ai,PROXY
+DOMAIN-SUFFIX,anthropic.com,PROXY
 DOMAIN,localhost,DIRECT
 DOMAIN,host.docker.internal,DIRECT
 DOMAIN-SUFFIX,local,DIRECT
@@ -421,6 +423,52 @@ function FindProxyForURL(url, host) {
 - 宿主机：`curl -v http://localhost:<端口>/` 不应出现 “Proxy CONNECT …”，应直接连到 `127.0.0.1:<端口>`（看到 404 也算成功）。
 - VS Code → Ports 面板：对该端口选择 “Open in Browser”，可打开 404 页面；随后在授权页点击 Authorize 应一次完成跳转。
 - 若抓包/浏览器 DevTools 显示先连 `::1` 失败再回退，说明 `::1` 未纳入绕行；补充后重试。
+
+## 🛡️ 防封号特别配置（STRICT_PROXY_ONLY）
+
+为防止 IP 泄露导致 Claude 封号，本配置默认启用 **严格代理模式**，并推荐在代理客户端中对 Claude 相关域名做显式规则。
+
+### 1. 容器内机制
+
+`devcontainer.json` 中通过 `containerEnv` 设置了：
+
+```json
+{
+  "STRICT_PROXY_ONLY": "${localEnv:STRICT_PROXY_ONLY:1}"
+}
+```
+
+当 `STRICT_PROXY_ONLY=1` 时：
+
+- 防火墙只放行 DNS 和代理端口（由 `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY` 解析得到）
+- 不再对任何外部域名（包括 `claude.ai` / `anthropic.com`）做直连白名单
+- 所有外网访问必须走代理
+
+如需暂时允许少量直连白名单，可以在宿主机设置：
+
+```bash
+export STRICT_PROXY_ONLY=0
+```
+
+然后在 VS Code 中重建容器。
+
+### 2. 宿主机代理（以 Shadowrocket 为例）
+
+在 **宿主机代理客户端** 中，既要确保 Claude 相关域名强制走代理，又要保证登录回调的 `localhost` 直连。以 Shadowrocket 为例（在现有规则基础上追加）：
+
+```text
+DOMAIN-SUFFIX,claude.ai,PROXY        # Claude 网站与服务
+DOMAIN-SUFFIX,anthropic.com,PROXY    # Anthropic 相关域名
+DOMAIN,localhost,DIRECT              # 本地回调
+IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+```
+
+其中：
+
+- `claude.ai` / `anthropic.com` 必须显式指定走代理节点（建议选择美国节点），不要依赖“自动选择”或泛用配置模式。
+- `localhost` / `127.0.0.0/8` 必须保持直连，以配合 VS Code 端口转发完成登录回调。
+
+更多平台（Clash/Surge/SwitchyOmega/PAC）的 localhost 绕行示例，见上文“宿主机绕行（localhost 回调必读）”一节。
 
 ## 参考资料
 
